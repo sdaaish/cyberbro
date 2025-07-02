@@ -20,6 +20,7 @@ MDE_CLIENT_SECRET=api_key_here
 MISP_URL=https://misp.local
 MISP_API_KEY=api_key_here
 SHODAN=api_key_here
+THREATFOX=api_key_here
 OPENCTI_API_KEY=api_key_here
 OPENCTI_URL=https://demo.opencti.io
 CROWDSTRIKE_CLIENT_ID=client_id_here

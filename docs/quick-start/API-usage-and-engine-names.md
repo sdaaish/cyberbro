@@ -389,7 +389,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 ### ThreatFox
 **Name**: `threatfox`
 **Supports**: IP, domain, URL, free_no_key
-**Explaination**: Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key
+**Explaination**: Checks ThreatFox by Abuse.ch for IP, domains, URL, free API key required
 
 ### URLscan
 **Name**: `urlscan`
