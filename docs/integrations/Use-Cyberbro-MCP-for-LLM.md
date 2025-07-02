@@ -218,14 +218,14 @@ Use max 3 engines.
 ```
 
 ```
-Analyze these observables with Cyberbro: suspicious-domain.com, 8.8.8.8, and 44d88612fea8a8f36de82e1278abb02f.  
+Analyze these observables with Cyberbro: suspicious-domain.com, 8.8.8.8, and 44d88612fea8a8f36de82e1278abb02f.
 Use all available engines.
 ```
 
 ### Observable Analysis
 
 ```
-I found this (hash|domain|url|ip|extension)  
+I found this (hash|domain|url|ip|extension)
 Can you submit it for analysis to Cyberbro and analyze the results?
 ```
 

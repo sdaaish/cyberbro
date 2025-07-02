@@ -12,8 +12,8 @@
 </p>
 
 !!! info
-    If you are using a reverse proxy with Cyberbro, ensure that the CORS headers are properly set and that the certificated is trusted on you computer or verified.  
-    Without the correct CORS configuration and certificates trust chain (pretty basic, but you can do hardening), the extension will not function correctly.  
+    If you are using a reverse proxy with Cyberbro, ensure that the CORS headers are properly set and that the certificated is trusted on you computer or verified.
+    Without the correct CORS configuration and certificates trust chain (pretty basic, but you can do hardening), the extension will not function correctly.
     See [the example with Caddy](https://docs.cyberbro.net/integrations/Reverse-Proxy-configuration-%E2%80%90-Caddy/).
 
 For localhost:5000 version of Cyberbro (e.g. on your machine with Docker), CORS is already enabled by default in Flask, so no additional configuration is needed.
@@ -51,7 +51,7 @@ For localhost:5000 version of Cyberbro (e.g. on your machine with Docker), CORS 
 ### Steps to Install on Firefox for development
 
 **Dev mode:**
- 
+
 1. **Clone the repository**:
     ```sh
     git clone https://github.com/stanfrbd/cyberbro-firefox-extension.git
@@ -91,4 +91,3 @@ See the [dedicated repo for Firefox](https://github.com/stanfrbd/cyberbro-firefo
 ## Privacy
 
 No information is sent somewhere else than your Cyberbro instance (the one you set in "Cyberbro URL" section).
-

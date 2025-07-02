@@ -18,7 +18,7 @@ cyberbro.example.com {
 ```
 sudo systemctl reload caddy
 ```
-or 
+or
 ```
 sudo service caddy reload
 ```

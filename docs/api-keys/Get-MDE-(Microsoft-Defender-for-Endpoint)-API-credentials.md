@@ -1,5 +1,5 @@
 !!! info
-    **Requirements:** Microsoft Defender for Endpoint is a paid service, you must have a tenant to get API keys.  
+    **Requirements:** Microsoft Defender for Endpoint is a paid service, you must have a tenant to get API keys.
     You will need an Azure **Global Admin** to help you.
 
 To interact with the Microsoft Defender for Endpoint API, you need to obtain the following credentials:

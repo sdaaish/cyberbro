@@ -1,7 +1,7 @@
 # Cyberbro has now a KASM Workspaces version
 
 !!! info
-    Kasm Workspaces is a docker container streaming platform for delivering browser-based access to desktops, applications, and web services.  
+    Kasm Workspaces is a docker container streaming platform for delivering browser-based access to desktops, applications, and web services.
     See more on: [https://hub.docker.com/u/kasmweb](https://hub.docker.com/u/kasmweb) for the other images provided.
 
 ## Demo
@@ -66,7 +66,7 @@ GUI_CACHE_TIMEOUT=1800
 API_CACHE_TIMEOUT=86400
 ```
 
-> Note: if you set `GUI_ENABLED_ENGINES` to `""` then all engines will be enabled in the GUI.  
+> Note: if you set `GUI_ENABLED_ENGINES` to `""` then all engines will be enabled in the GUI.
 > By default (even if the variable is not set or enabled), all **free engines** will be enabled in the GUI.
 
 Refer to [https://docs.cyberbro.net/](https://docs.cyberbro.net/) for more information.
@@ -74,4 +74,3 @@ Refer to [https://docs.cyberbro.net/](https://docs.cyberbro.net/) for more infor
 You must edit the config in your KASM Cyberbro Workspace settings to add these environment variables, according to [KASM Workspaces documentation examples](https://kasmweb.com/docs/latest/guide/workspaces.html#examples)
 
 ![image](https://github.com/user-attachments/assets/33125248-31e8-4315-a772-e0546a8be659)
-

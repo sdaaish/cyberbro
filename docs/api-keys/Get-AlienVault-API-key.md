@@ -8,7 +8,7 @@ AlienVault OTX (Open Threat Exchange) is a collaborative threat intelligence pla
     Open your web browser and go to [https://otx.alienvault.com](https://otx.alienvault.com).
 
 2. **Log In or Sign Up:**
-    Log in with your existing account credentials.  
+    Log in with your existing account credentials.
     If you do not have an account, click "Sign Up" and follow the instructions to create one.
 
 3. **Go to Your Account Settings:**
@@ -23,5 +23,5 @@ AlienVault OTX (Open Threat Exchange) is a collaborative threat intelligence pla
 !!! note
     Keep your API key confidential. If you believe your key has been compromised, you can regenerate it from the same settings page.
 
-Fill the `secrets.json` file with `"alienvault"`  
+Fill the `secrets.json` file with `"alienvault"`
 or use the environment variable `ALIENVAULT` in your configuration or docker-compose file.

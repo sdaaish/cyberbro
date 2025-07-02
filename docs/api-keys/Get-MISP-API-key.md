@@ -8,7 +8,7 @@ MISP (Malware Information Sharing Platform & Threat Sharing) is an open-source t
     Open your web browser and navigate to the URL of your MISP instance.
 
 2. **Log In:**
-    Enter your credentials to log in to your MISP account.  
+    Enter your credentials to log in to your MISP account.
     If you do not have an account, contact your MISP administrator to request access.
 
 3. **Navigate to Your Profile:**
@@ -23,5 +23,5 @@ MISP (Malware Information Sharing Platform & Threat Sharing) is an open-source t
 !!! note
     Keep your API key confidential. If you believe your key has been compromised, you can regenerate it from the same profile page.
 
-Fill the `secrets.json` file with `"misp_url"` and `"misp_api_key"`  
+Fill the `secrets.json` file with `"misp_url"` and `"misp_api_key"`
 or use the environment variables `MISP_URL` and `MISP_API_KEY` in your configuration or docker-compose file.

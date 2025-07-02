@@ -5,13 +5,13 @@ Many questions and issues have already been addressed in the [GitHub Issues tab]
 Most API-related questions or errors are due to misconfigurations. Make sure to carefully read the documentation and use the search function. If you find something missing, feel free to open a Pull Request to improve the docs.
 
 ## OpenCTI and MISP & every self-hosted instance
-For certificate issues, ensure the correct certificate is installed on your machine.  
+For certificate issues, ensure the correct certificate is installed on your machine.
 [Disabling SSL verification](https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment/?h=ssl#ssl-verification-settings-for-requests-backend) is possible but **not recommended**.
 
 ## Disabling some engines
 If you want to disable certain engines, make sure you set the correct variable as described [here](https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment/?h=engines#selected-engines-in-the-gui-indexhtml-only).
 
-## GitHub Docker Image Errors  
+## GitHub Docker Image Errors
 If you encounter errors with the GitHub Docker image, ensure you are authenticated to the GitHub Docker registry. Refer to the [official documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic) for guidance.
 
 ## Where are the logs?
@@ -33,7 +33,7 @@ This configuration ensures that:
 - `./logs:/var/log/cyberbro`: Maps the `logs` directory on your host machine to `/var/log/cyberbro` inside the container. You can change `./logs` to any directory you prefer for storing logs.
 
 !!! note
-        Persisting logs is useful for troubleshooting and monitoring.  
+        Persisting logs is useful for troubleshooting and monitoring.
         Make sure the `logs` directory exists on your host, or Docker will create it automatically.
 
 For more details on volume mappings and other advanced deployment options, see the [Advanced options for deployment](https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment/#example-of-custom-docker-compose-file) documentation.

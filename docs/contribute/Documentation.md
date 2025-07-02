@@ -3,7 +3,7 @@
 This GitHub Actions workflow (`deploy-docs.yml`) automates the deployment of your documentation site using [MkDocs Material](https://squidfunk.github.io/mkdocs-material/).
 
 !!! tip
-    Why use MkDocs Material?  
+    Why use MkDocs Material?
     Everyone can now easily contribute to the documentation, and it provides a clean, modern look with built-in search functionality.
 
 ## How it works

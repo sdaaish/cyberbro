@@ -17,3 +17,4 @@ ioc-fanger
 tldextract
 crowdstrike-falconpy
 googlesearch-python
+dfir-iris-client
