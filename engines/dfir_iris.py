@@ -62,20 +62,20 @@ def query_dfir_iris(
 
         response = global_search_ioc(session, observable)
         data = response.as_json()
-        status = data["status"]
+        status = data.get("status")
         if status == "success":
-            case_data = data["data"]
+            case_data = data.get("data")
             case_findings = []
 
             for case in case_data:
-                cid = case["case_id"]
+                cid = case.get("case_id")
                 link = f"{dfir_iris_url}/case?cid={cid}" if cid else None
                 case_findings.append(link)
 
             unique_cases = list(set(case_findings))
             count = len(unique_cases)
 
-            return {"cases": unique_cases, "count": count}
+        return {"cases": unique_cases, "count": count}
 
     except Exception as e:
         logger.error("Error querying Dfir_Iris for '%s': %s", observable, e, exc_info=True)
