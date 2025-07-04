@@ -20,18 +20,17 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 
 def query_dfir_iris(
     observable: str,
-    observable_type: str,
     proxies: dict[str, str],
     api_key: str,
     dfir_iris_url: str,
     ssl_verify: bool = True,
 ) -> Optional[dict[str, Any]]:
     """
-    Queries the DFIR_IRIS API for information about a given observable (IP, domain, URL, or file hash).
+    Queries the DFIR-IRIS API for information about a given observable (IP, domain, URL, or file hash).
+    DFIR-IRIS search supports all observable types.
 
     Args:
         observable (str): The IoC to query (IPv4, IPv6, domain, URL, or file hash).
-        observable_type (str): The type of the observable ("IPv4", "FQDN", "URL", "MD5", etc.).
         api_key (str): DFIR_IRIS API key.
         proxies (dict): Dictionary of proxies.
 
