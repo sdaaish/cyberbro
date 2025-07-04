@@ -1,8 +1,9 @@
-import base64
 import logging
 from typing import Any, Optional
 
-import requests
+from dfir_iris_client.case import Case
+from dfir_iris_client.global_search import global_search_ioc
+from dfir_iris_client.session import ClientSession
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +21,9 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 def query_dfir_iris(
     observable: str,
     observable_type: str,
-    api_key: str,
     proxies: dict[str, str],
+    api_key: str,
+    dfir_iris_url: str,
     ssl_verify: bool = True,
 ) -> Optional[dict[str, Any]]:
     """
@@ -34,62 +36,46 @@ def query_dfir_iris(
         proxies (dict): Dictionary of proxies.
 
     Returns:
-        dict: Contains detection ratio, total malicious, link, and community_score, for example:
-            {
-                "detection_ratio": "5/70",
-                "total_malicious": 5,
-                "link": "https://www.dfir_iris.com/gui/ip-address/<ip>/detection",
-                "community_score": 10
-            }
-        None: If any error occurs.
+        dict: A dictionary with "cases" (list), "count" (int).
+        None: If an error occurs or API key is missing.
     """
     try:
-        headers = {"x-apikey": api_key}
-        # Determine the correct endpoint & link based on the observable type
-        if observable_type in ["IPv4", "IPv6"]:
-            url = f"https://www.dfir_iris.com/api/v3/ip_addresses/{observable}"
-            link = f"https://www.dfir_iris.com/gui/ip-address/{observable}/detection"
-        elif observable_type == "FQDN":
-            url = f"https://www.dfir_iris.com/api/v3/domains/{observable}"
-            link = f"https://www.dfir_iris.com/gui/domain/{observable}/detection"
-        elif observable_type == "URL":
-            encoded_url = base64.urlsafe_b64encode(observable.encode()).decode().strip("=")
-            url = f"https://www.dfir_iris.com/api/v3/urls/{encoded_url}"
-            link = f"https://www.dfir_iris.com/gui/url/{encoded_url}/detection"
-        else:  # Assume a file hash
-            url = f"https://www.dfir_iris.com/api/v3/files/{observable}"
-            link = f"https://www.dfir_iris.com/gui/file/{observable}/detection"
+        if not api_key:
+            logger.error("DFIR IRIS API key is required")
+            return None
 
-        response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
-        response.raise_for_status()
+        # Ensure the URL is properly formatted
+        dfir_iris_url = dfir_iris_url.rstrip("/")
 
-        data = response.json()
-        if "data" in data and "attributes" in data["data"]:
-            attributes = data["data"]["attributes"]
-            stats = attributes.get("last_analysis_stats", {})
+        session = ClientSession(apikey=api_key, host=dfir_iris_url, ssl_verify=ssl_verify)
 
-            total_malicious = stats.get("malicious", 0)
-            total_engines = sum(stats.values()) if stats else 0
-            detection_ratio = f"{total_malicious}/{total_engines}" if total_engines else "0/0"
+        # Initialize the case instance with the session
+        case = Case(session=session)
 
-            # 'reputation' is usually the community score
-            community_score = attributes.get("reputation", "Unknown")
+        # Fetch the case from its ID. Let's use the initial demo case and improve it
+        if not case.case_id_exists(cid=1):
+            # This should never happen, the server refuses to delete this case for consistency
+            raise Exception("Case ID 1 not found !")
 
-            return {
-                "detection_ratio": detection_ratio,
-                "total_malicious": total_malicious,
-                "link": link,
-                "community_score": community_score,
-            }
+        # Attribute the cid to the case instance
+        case.set_cid(cid=1)
 
-        # If 'data' or 'attributes' key is missing, fallback
-        logger.warning("Dfir_Iris response missing expected keys for '%s': %s", observable, data)
-        return {
-            "detection_ratio": "0/0",
-            "total_malicious": 0,
-            "link": f"https://www.dfir_iris.com/gui/search/{observable}",
-            "community_score": 0,
-        }
+        response = global_search_ioc(session, observable)
+        data = response.as_json()
+        status = data["status"]
+        if status == "success":
+            case_data = data["data"]
+            case_findings = []
+
+            for case in case_data:
+                cid = case["case_id"]
+                link = f"{dfir_iris_url}/case?cid={cid}" if cid else None
+                case_findings.append(link)
+
+            unique_cases = list(set(case_findings))
+            count = len(unique_cases)
+
+            return {"cases": unique_cases, "count": count}
 
     except Exception as e:
         logger.error("Error querying Dfir_Iris for '%s': %s", observable, e, exc_info=True)
