@@ -215,6 +215,14 @@ def prepare_row(result, selected_engines):
         row["cs_kill_chain"] = crowdstrike_data.get("kill_chain") if crowdstrike_data else None
         row["cs_vulns"] = crowdstrike_data.get("vulnerabilities") if crowdstrike_data else None
 
+    if "rl_analyze" in selected_engines:
+        rl_analyze_data = result.get("rl_analyze", {})
+        row["rl_analyze_total_count"] = rl_analyze_data.get("reports") if rl_analyze_data else None
+        row["rl_analyze_malicious"] = rl_analyze_data.get("count") if rl_analyze_data else None
+        row["rl_analyze_files"] = rl_analyze_data.get("files") if rl_analyze_data else None
+        row["rl_analyze_threats"] = rl_analyze_data.get("threats") if rl_analyze_data else None
+        row["rl_analyze_link"] = rl_analyze_data.get("link") if rl_analyze_data else None
+
     return row
 
 
@@ -297,8 +305,9 @@ def export_to_excel(data, timestamp):
                 try:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"Exception for {e}")
+
             adjusted_width = max_length + 2
             worksheet.column_dimensions[column].width = adjusted_width
     response = send_file(excel_path, as_attachment=True)

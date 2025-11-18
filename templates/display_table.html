@@ -148,6 +148,10 @@
             <th>DFIR-IRIS</th>
             {% endif %}
 
+            {% if "rl_analyze" in analysis_results.selected_engines %}
+            <th>Reversing Labs Spectre Analyze</th>
+            {% endif %}
+
             {% if "hudsonrock" in analysis_results.selected_engines %}
             <th>Hudson Rock</th>
             {% endif %}
@@ -295,6 +299,10 @@
 
             {% if "dfir_iris" in analysis_results.selected_engines %}
             {% include "engine_layouts/dfir_iris_table.html" %}
+            {% endif %}
+
+            {% if "rl_analyze" in analysis_results.selected_engines %}
+            {% include "engine_layouts/rl_analyze_table.html" %}
             {% endif %}
 
             {% if "hudsonrock" in analysis_results.selected_engines %}

@@ -349,6 +349,8 @@ def update_config():
         secrets.threatfox = request.form.get("threatfox", secrets.threatfox)
         secrets.dfir_iris_api_key = request.form.get("dfir_iris_api_key", secrets.dfir_iris_api_key)
         secrets.dfir_iris_url = request.form.get("dfir_iris_url", secrets.dfir_iris_url)
+        secrets.rl_analyze_api_key = request.form.get("rl_analyze_api_key", secrets.rl_analyze_api_key)
+        secrets.rl_analyze_url = request.form.get("rl_analyze_url", secrets.rl_analyze_url)
 
         # Apply the GUI_ENABLED_ENGINES configuration directly to the GUI to avoid restarting the app
         updated_gui_enabled_engines: str = request.form.get("gui_enabled_engines", "")
@@ -422,4 +424,4 @@ def graph(analysis_id):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(port=5000, debug=False)
