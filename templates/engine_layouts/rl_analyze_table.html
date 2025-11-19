@@ -1,8 +1,9 @@
 <td>
     {% if result.rl_analyze %}
-    <strong>Third party reputations:</strong> {{ result.rl_analyze.reports }}<br/>
+    <strong>Third party reputations</strong><br/>
     <ul>
-        <li><strong>Malicious count:</strong> {{ result.rl_analyze.count }}</li>
+        <li><strong>Malicious/Total:</strong> {{ result.rl_analyze.malicious }}/{{ result.rl_analyze.reports }}</li>
+        <li><strong>Suspicious/Total:</strong> {{ result.rl_analyze.suspicious }}/{{ result.rl_analyze.reports }}</li>
         <li><strong>Malicious downloaded files:</strong> {{ result.rl_analyze.files }}</li>
         <li><strong>Threats:</strong> {{ result.rl_analyze.threats }}</li>
         <li><strong>Link:</strong> <a href="{{ result.rl_analyze.link }}">See on Reversing Labs Spectre Analyze</a></li>

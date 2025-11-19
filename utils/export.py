@@ -218,7 +218,8 @@ def prepare_row(result, selected_engines):
     if "rl_analyze" in selected_engines:
         rl_analyze_data = result.get("rl_analyze", {})
         row["rl_analyze_total_count"] = rl_analyze_data.get("reports") if rl_analyze_data else None
-        row["rl_analyze_malicious"] = rl_analyze_data.get("count") if rl_analyze_data else None
+        row["rl_analyze_malicious"] = rl_analyze_data.get("malicious") if rl_analyze_data else None
+        row["rl_analyze_suspicious"] = rl_analyze_data.get("suspicious") if rl_analyze_data else None
         row["rl_analyze_files"] = rl_analyze_data.get("files") if rl_analyze_data else None
         row["rl_analyze_threats"] = rl_analyze_data.get("threats") if rl_analyze_data else None
         row["rl_analyze_link"] = rl_analyze_data.get("link") if rl_analyze_data else None

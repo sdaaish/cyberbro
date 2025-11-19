@@ -1,6 +1,6 @@
-{% if analysis_results.results[0].rl_analyze and analysis_results.results[0].rl_analyze.count > 3 %}
+{% if analysis_results.results[0].rl_analyze and (analysis_results.results[0].rl_analyze.malicious > 2 or analysis_results.results[0].rl_analyze.suspicious > 3) %}
 <div class="card high-risk" style="background-color: red;">
-{% elif analysis_results.results[0].rl_analyze and analysis_results.results[0].rl_analyze.count > 0 %}
+{% elif analysis_results.results[0].rl_analyze and (analysis_results.results[0].rl_analyze.malicious > 0 or analysis_results.results[0].rl_analyze.suspicious > 0) %}
 <div class="card high-risk" style="background-color: yellow;">
 {% else %}
 <div class="card">
@@ -9,8 +9,8 @@
     {% if analysis_results.results[0].rl_analyze.reports == 0 %}
     <p>Not Found</p>
     {% else %}
-    <strong>Third party reputations:</strong> {{ analysis_results.results[0].rl_analyze.reports }}<br/>
-    <strong>Malicious count:</strong> {{ analysis_results.results[0].rl_analyze.count }}<br/>
+    <strong>Malicious/Total:</strong> {{ analysis_results.results[0].rl_analyze.malicious }}/{{ analysis_results.results[0].rl_analyze.reports }}<br/>
+    <strong>Suspicious/Total:</strong> {{ analysis_results.results[0].rl_analyze.suspicious }}/{{ analysis_results.results[0].rl_analyze.reports }}<br/>
     <strong>Malicious downloaded files:</strong> {{ analysis_results.results[0].rl_analyze.files }}<br/>
     <strong>Threats:</strong> {{ analysis_results.results[0].rl_analyze.threats }}<br/>
     <strong>Link:</strong> <a href="{{ analysis_results.results[0].rl_analyze.link }}">See on Reversing Labs Spectre Analyze</a><br/>
