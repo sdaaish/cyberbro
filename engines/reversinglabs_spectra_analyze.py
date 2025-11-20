@@ -67,15 +67,25 @@ def query_rl_analyze(
         ssl_verify (bool): Whether to verify SSL certificates.
 
     Returns:
-        dict: A dictionary with the results from the Reversing Labs lookup, for example:
+        dict: A dictionary with the results from the Reversing Labs lookup. Example for Hashes and URL:
             {
                 "reports": 27,   # Total number of engines run against
-                "malicious": 2   # Number of malicious verdicts
-                "suspicious": 1  # Number of suspicious verdicts
-                "files": 0,      # Number of files with download link
+                "malicious": 2,   # Number of malicious verdicts
+                "suspicious": 1,  # Number of suspicious verdicts
                 "threats": ['Web.Hyperlink.Blacklisted', 'malware_file'],
                 "link": "https://rl_analyze_url/ip/1.2.3.4/analysis/ip/
             }
+       Example for IPv4,IPv6 and FQDN:
+            {
+                "reports": 27,   # Total number of engines run against
+                "malicious": 2,   # Number of malicious verdicts
+                "suspicious": 1,  # Number of suspicious verdicts
+                "total_files": 23,
+                "malicious_files": 2,
+                "suspicious_files": 1,
+                "threats": ['Web.Hyperlink.Blacklisted', 'malware_file'],
+                "link": "https://rl_analyze_url/ip/1.2.3.4/analysis/ip/
+             }
         None: If any error occurs.
     """
 
@@ -103,8 +113,10 @@ def query_rl_analyze(
 def parse_rl_response(result: dict, observable: str, observable_type: str, url: str):
     top_threats: list[str] = []
     if observable_type in ["IPv4", "IPv6", "FQDN"]:
-        top_threats.extend(result.get("top_threats"))
+        top_threats.extend([i.get("threat_name") for i in result.get("top_threats")])
+        total_files: int = result["downloaded_files_statistics"]["total"]
         malicious_files: int = result["downloaded_files_statistics"]["malicious"]
+        suspicious_files: int = result["downloaded_files_statistics"]["suspicious"]
         malicious: int = result["third_party_reputations"]["statistics"]["malicious"]
         suspicious: int = result["third_party_reputations"]["statistics"]["suspicious"]
         total: int = result["third_party_reputations"]["statistics"]["total"]
@@ -113,22 +125,21 @@ def parse_rl_response(result: dict, observable: str, observable_type: str, url: 
             link: str = url + get_ui_endpoint(result["requested_ip"], observable_type)
         elif observable_type in ["FQDN"]:
             link: str = url + get_ui_endpoint(result["requested_domain"], observable_type)
-        elif observable_type in ["URL"]:
-            link: str = url + get_ui_endpoint(result["requested_url"], observable_type)
 
         if total > 0:
             return {
                 "reports": total,
                 "malicious": malicious,
                 "suspicious": suspicious,
-                "files": malicious_files,
+                "total_files": total_files,
+                "malicious_files": malicious_files,
+                "suspicious_files": suspicious_files,
                 "threats": top_threats,
                 "link": link,
             }
     elif observable_type in ["URL"]:
         top_threats.append(result.get("threat_name"))
         top_threats.extend(result.get("categories"))
-        malicious_files: int = 0
         malicious: int = result["third_party_reputations"]["statistics"]["malicious"]
         suspicious: int = result["third_party_reputations"]["statistics"]["suspicious"]
         total: int = result["third_party_reputations"]["statistics"]["total"]
@@ -138,7 +149,6 @@ def parse_rl_response(result: dict, observable: str, observable_type: str, url: 
                 "reports": total,
                 "malicious": malicious,
                 "suspicious": suspicious,
-                "files": malicious_files,
                 "threats": top_threats,
                 "link": link,
             }
@@ -166,7 +176,6 @@ def parse_rl_response(result: dict, observable: str, observable_type: str, url: 
                 "reports": total,
                 "malicious": malicious,
                 "suspicious": suspicious,
-                "files": 0,
                 "threats": top_threats,
                 "link": link,
             }

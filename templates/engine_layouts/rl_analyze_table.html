@@ -1,14 +1,13 @@
 <td>
     {% if result.rl_analyze %}
     <strong>Third party reputations</strong><br/>
-    <ul>
-        <li><strong>Malicious/Total:</strong> {{ result.rl_analyze.malicious }}/{{ result.rl_analyze.reports }}</li>
-        <li><strong>Suspicious/Total:</strong> {{ result.rl_analyze.suspicious }}/{{ result.rl_analyze.reports }}</li>
-        <li><strong>Malicious downloaded files:</strong> {{ result.rl_analyze.files }}</li>
-        <li><strong>Threats:</strong> {{ result.rl_analyze.threats }}</li>
-        <li><strong>Link:</strong> <a href="{{ result.rl_analyze.link }}">See on Reversing Labs Spectra Analyze</a></li>
-    </ul>
+    <strong>Verdict: </strong>{{ result.rl_analyze.malicious }}/{{ result.rl_analyze.suspicious }}/{{ result.rl_analyze.reports }} <i>(Malicious/Suspicious/Total)</i><br/>
+    {% if "total_files" in result.rl_analyze %}
+      <strong>Downloaded files: </strong>{{ result.rl_analyze.malicious_files }}/{{ result.rl_analyze.suspicious_files }}/{{ result.rl_analyze.total_files }} <i>(Malicious/Suspicious/Total)</i><br/>
+    {% endif %}
+    <strong>Threats:</strong> {{ result.rl_analyze.threats }}<br/>
+    <strong>Link:</strong> <a href="{{ result.rl_analyze.link }}">See on Reversing Labs Spectra Analyze</a><br/>
     {% else %}
-        Not found
+        Not found<br/>
     {% endif %}
 </td>
