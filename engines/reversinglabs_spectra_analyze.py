@@ -18,7 +18,7 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 
 
 def get_api_endpoint(observable: str, observable_type: str) -> str | None:
-    # Map observable type to Reversing Labs SPectre Analyze endpoint
+    # Map observable type to Reversing Labs Spectra Analyze endpoint
     endpoint_map = {
         "IPv4": f"/api/network-threat-intel/ip/{observable}/report/",
         "IPv6": f"/api/network-threat-intel/ip/{observable}/report/",
@@ -33,7 +33,7 @@ def get_api_endpoint(observable: str, observable_type: str) -> str | None:
 
 
 def get_ui_endpoint(observable: str, observable_type: str) -> str | None:
-    # Map observable type to Reversing Labs Spectre Analyze endpoint
+    # Map observable type to Reversing Labs Spectra Analyze endpoint
     endpoint_map = {
         "IPv4": f"/ip/{observable}/analysis/ip/",
         "IPv6": f"/ip/{observable}/analysis/ip/",
@@ -61,16 +61,20 @@ def query_rl_analyze(
     Args:
         observable (str): The IoC to query (IPv4, IPv6, domain, URL, or file hash).
         observable_type (str): What type of IOC, (IPv4, IPv6, FQDN, MD5, SHA1, SHA256, URL)
-        rl_analyze_api_key (str): Reversing Labs Spectre Analyze API key.
-        rl_analyze_url (str): Reversing Labs Spectre Analyze url.
+        rl_analyze_api_key (str): Reversing Labs Spectra Analyze API key.
+        rl_analyze_url (str): Reversing Labs Spectra Analyze url.
         proxies (dict): Dictionary of proxies.
         ssl_verify (bool): Whether to verify SSL certificates.
 
     Returns:
-        dict: A dictionary with number of cases with the indicator, and the case id links, for example:
+        dict: A dictionary with the results from the Reversing Labs lookup, for example:
             {
-                "reports": 3,
-                "links": ["https://rl_analyze_url/case/ioc?cid=3","https://rl_analyze_url/case/ioc?cid=4"]
+                "reports": 27,   # Total number of engines run against
+                "malicious": 2   # Number of malicious verdicts
+                "suspicious": 1  # Number of suspicious verdicts
+                "files": 0,      # Number of files with download link
+                "threats": ['Web.Hyperlink.Blacklisted', 'malware_file'],
+                "link": "https://rl_analyze_url/ip/1.2.3.4/analysis/ip/
             }
         None: If any error occurs.
     """

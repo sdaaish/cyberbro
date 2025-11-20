@@ -5,7 +5,7 @@
 {% else %}
 <div class="card">
 {% endif %}
-    <h3>Reversing Labs Spectre Analyze</h3>
+    <h3>Reversing Labs Spectra Analyze</h3>
     {% if analysis_results.results[0].rl_analyze.reports == 0 %}
     <p>Not Found</p>
     {% else %}
@@ -13,6 +13,6 @@
     <strong>Suspicious/Total:</strong> {{ analysis_results.results[0].rl_analyze.suspicious }}/{{ analysis_results.results[0].rl_analyze.reports }}<br/>
     <strong>Malicious downloaded files:</strong> {{ analysis_results.results[0].rl_analyze.files }}<br/>
     <strong>Threats:</strong> {{ analysis_results.results[0].rl_analyze.threats }}<br/>
-    <strong>Link:</strong> <a href="{{ analysis_results.results[0].rl_analyze.link }}">See on Reversing Labs Spectre Analyze</a><br/>
+    <strong>Link:</strong> <a href="{{ analysis_results.results[0].rl_analyze.link }}">See on Reversing Labs Spectra Analyze</a><br/>
     {% endif %}
 </div>
