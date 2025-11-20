@@ -294,6 +294,24 @@ function formatResults(data) {
                 plainText += `  - Link: ${result.crtsh.link}\n`;
             }
         }
+
+        if (result.rl_analyze) {
+            plainText += `Reversing Labs Spectra Analyze:\n`;
+            if (result.rl_analyze.malicious) {
+                plainText += `  - Malicious: ${result.rl_analyze.malicious}/${result.rl_analyze.reports}\n`;
+            }
+            if (result.rl_analyze.suspicious) {
+                plainText += `  - Suspicious: ${result.rl_analyze.suspicious}/${result.rl_analyze.reports}\n`;
+            }
+            if (result.rl_analyze.files) plainText += ` - Files: ${result.rl_analyze.files}\n`;
+            if (result.rl_analyze.link) plainText += `  - Link: ${result.rl_analyze.link}\n`;
+            if (result.rl_analyze.threats && result.rl_analyze.threats.length > 0) {
+                plainText += `  - Threats:\n`;
+                result.rl_analyze.threats.forEach(threat => {
+                    plainText += `    - ${threat}\n`;
+                });
+            }
+        }
         plainText += '\n';
     });
 
