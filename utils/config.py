@@ -27,6 +27,7 @@ class Secrets:
     dfir_iris_url: str = ""
     dfir_iris_api_key: str = ""
     dfir_iris_search_notes: bool = False
+    dfir_iris_v3: bool = False
     flask_debug: bool = False
     flask_port: int = 5000
     flask_host: str = "127.0.0.1"

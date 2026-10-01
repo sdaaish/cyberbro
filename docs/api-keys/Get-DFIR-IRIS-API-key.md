@@ -25,3 +25,4 @@
 
 Set `DFIR_IRIS_URL` and `DFIR_IRIS_API_KEY` in your `.env` file or deployment environment.  
 Set the `DFIR_IRIS_SEARCH_NOTES` to `true` if you also want to search for indicators in the notes. Default (`false`) is to only search for observables in IOCs. Enabling this feature will return results for both findings if applicable.
+Set `DFIR_IRIS_V3` to `true` if your DFIR-IRIS instance is v3.0.0 or newer, which exposes the new `GET /api/v2/search` endpoint. Leave it unset or `false` (default) to use the legacy API, supported from v2.0.5 up to v2.4.29.

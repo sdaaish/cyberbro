@@ -28,6 +28,17 @@ class DFIRIrisEngine(BaseEngine):
             | ObservableType.URL
         )
 
+    def _auth_headers(self) -> dict[str, str]:
+        """Build the Authorization/Content-Type headers shared by both API versions."""
+        return {
+            "Authorization": "Bearer " + self.secrets.dfir_iris_api_key,
+            "Content-Type": "application/json",
+        }
+
+    # ------------------------------------------------------------------
+    # Legacy API support (DFIR-IRIS v2.0.5 up to v2.4.29)
+    # ------------------------------------------------------------------
+
     def _build_search_body(self, observable: Observable, search_type: str) -> dict[str, str]:
         """Build the request body for a DFIR-IRIS search, applying the same selective
         wildcard pattern used for both ioc and notes searches."""
@@ -46,20 +57,16 @@ class DFIRIrisEngine(BaseEngine):
             case _:
                 return {"search_value": f"{observable.value}", "search_type": search_type}
 
-    def _query(self, dfir_iris_url: str, body: dict[str, str]) -> Any:
-        """Send a search request to DFIR-IRIS and return the parsed JSON response."""
-        dfir_iris_api_key = self.secrets.dfir_iris_api_key
+    def _query_legacy(self, dfir_iris_url: str, body: dict[str, str]) -> Any:
+        """Send a search request to the legacy DFIR-IRIS API (up to v2.4.29) and
+        return the parsed JSON response."""
         url = f"{dfir_iris_url}/search"
         params: dict[str, int] = {"cid": 1}
-        headers = {
-            "Authorization": f"Bearer {dfir_iris_api_key}",
-            "Content-Type": "application/json",
-        }
         payload = json.dumps(body)
         response = requests.post(
             url,
             params=params,
-            headers=headers,
+            headers=self._auth_headers(),
             data=payload,
             proxies=self.proxies,
             verify=self.ssl_verify,
@@ -70,17 +77,17 @@ class DFIRIrisEngine(BaseEngine):
 
     @staticmethod
     def _extract_case_ids(data: Any) -> list[int]:
-        """Extract the case_ids from a DFIR-IRIS search response, if any."""
+        """Extract the case_ids from a legacy DFIR-IRIS search response, if any."""
         if not data or "data" not in data or not data["data"]:
             return []
         return [i["case_id"] for i in data["data"]]
 
-    def analyze(self, observable: Observable) -> dict[str, Any] | None:
-        dfir_iris_url = self.secrets.dfir_iris_url
-
+    def _analyze_legacy(self, observable: Observable, dfir_iris_url: str) -> dict[str, Any] | None:
+        """Query the legacy DFIR-IRIS API (v2.0.5 up to v2.4.29), which exposes a
+        single POST /search endpoint per search type (ioc, notes)."""
         try:
             ioc_body = self._build_search_body(observable, "ioc")
-            ioc_data = self._query(dfir_iris_url, ioc_body)
+            ioc_data = self._query_legacy(dfir_iris_url, ioc_body)
         except Exception as e:
             logger.error(
                 "Error querying DFIR-IRIS for '%s': %s", observable.value, e, exc_info=True
@@ -96,7 +103,7 @@ class DFIRIrisEngine(BaseEngine):
         if self.secrets.dfir_iris_search_notes:
             try:
                 notes_body = self._build_search_body(observable, "notes")
-                notes_data = self._query(dfir_iris_url, notes_body)
+                notes_data = self._query_legacy(dfir_iris_url, notes_body)
                 notes_links = [
                     f"{dfir_iris_url}/case/notes?cid={case_id}"
                     for case_id in self._extract_case_ids(notes_data)
@@ -114,6 +121,70 @@ class DFIRIrisEngine(BaseEngine):
 
         unique_links = sorted(set(ioc_links) | set(notes_links))
         return {"reports": len(unique_links), "links": unique_links}
+
+    # ------------------------------------------------------------------
+    # New API support (DFIR-IRIS v3.0.0+)
+    # ------------------------------------------------------------------
+
+    def _query_v3(self, dfir_iris_url: str, observable: Observable, types: str) -> Any:
+        """Send a search request to the new DFIR-IRIS v3.0.0 API (GET /api/v2/search)
+        and return the parsed JSON response."""
+        url = f"{dfir_iris_url}/api/v2/search"
+        params = {"value": observable.value, "types": types}
+        response = requests.get(
+            url,
+            params=params,
+            headers=self._auth_headers(),
+            proxies=self.proxies,
+            verify=self.ssl_verify,
+            timeout=5,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    @staticmethod
+    def _extract_case_ids_by_type(data: Any, result_type: str) -> list[int]:
+        """Extract the case_ids for a given result type (ioc, notes) from a
+        DFIR-IRIS v3.0.0 search response, if any."""
+        if not data or "data" not in data or not data["data"]:
+            return []
+        return [i["case_id"] for i in data["data"] if i.get("type") == result_type]
+
+    def _analyze_v3(self, observable: Observable, dfir_iris_url: str) -> dict[str, Any] | None:
+        """Query the new DFIR-IRIS v3.0.0 API, which exposes a single GET
+        /api/v2/search endpoint returning both ioc and notes results at once."""
+        types = "ioc,notes" if self.secrets.dfir_iris_search_notes else "ioc"
+        try:
+            data = self._query_v3(dfir_iris_url, observable, types)
+        except Exception as e:
+            logger.error(
+                "Error querying DFIR-IRIS for '%s': %s", observable.value, e, exc_info=True
+            )
+            return None
+
+        ioc_links = [
+            f"{dfir_iris_url}/case/ioc?cid={case_id}"
+            for case_id in self._extract_case_ids_by_type(data, "ioc")
+        ]
+        notes_links = [
+            f"{dfir_iris_url}/case/notes?cid={case_id}"
+            for case_id in self._extract_case_ids_by_type(data, "notes")
+        ]
+
+        if not ioc_links and not notes_links:
+            return None
+
+        unique_links = sorted(set(ioc_links) | set(notes_links))
+        return {"reports": len(unique_links), "links": unique_links}
+
+    # ------------------------------------------------------------------
+
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
+        dfir_iris_url = self.secrets.dfir_iris_url
+
+        if self.secrets.dfir_iris_v3:
+            return self._analyze_v3(observable, dfir_iris_url)
+        return self._analyze_legacy(observable, dfir_iris_url)
 
     def create_export_row(self, analysis_result: Any) -> dict:
         if not analysis_result:

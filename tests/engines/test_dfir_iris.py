@@ -746,3 +746,111 @@ def test_analyze_notes_disabled_no_hits_returns_none(secrets_with_both_keys, ipv
 
     assert result is None
     assert len(responses.calls) == 1
+
+
+# ============================================================================
+# New v3.0.0 API support (GET /api/v2/search)
+# ============================================================================
+
+
+@pytest.fixture
+def secrets_v3(secrets_with_both_keys):
+    secrets_with_both_keys.dfir_iris_v3 = True
+    return secrets_with_both_keys
+
+
+def test_dfir_iris_v3_defaults_to_false():
+    """Test that the DFIR_IRIS_V3 config field defaults to False (legacy API)."""
+    assert Secrets().dfir_iris_v3 is False
+
+
+@responses.activate
+def test_analyze_v3_success_uses_get_and_api_v2_search(secrets_v3, ipv4_observable):
+    """Test that the v3 flag issues a single GET to /api/v2/search."""
+    engine = DFIRIrisEngine(secrets_v3, proxies={}, ssl_verify=True)
+    url = f"{secrets_v3.dfir_iris_url}/api/v2/search"
+
+    mock_resp = {
+        "data": [
+            {"ioc_id": 21, "ioc_name": "1.2.3.44", "case_id": 5, "type": "ioc"},
+            {"ioc_id": 15, "ioc_name": "1.2.3.44", "case_id": 3, "type": "ioc"},
+        ],
+        "pagination": {"total": 2, "page": 1, "per_page": 25, "total_pages": 1},
+    }
+    responses.add(responses.GET, url, json=mock_resp, status=200)
+
+    result = engine.analyze(ipv4_observable)
+
+    assert result is not None
+    assert len(responses.calls) == 1
+    assert responses.calls[0].request.method == "GET"
+    assert result["reports"] == 2
+    for cid in [5, 3]:
+        assert any(f"cid={cid}" in link for link in result["links"])
+
+
+@responses.activate
+def test_analyze_v3_request_params(secrets_v3, ipv4_observable):
+    """Test that the v3 GET request sends the expected query parameters."""
+    engine = DFIRIrisEngine(secrets_v3, proxies={}, ssl_verify=True)
+    url = f"{secrets_v3.dfir_iris_url}/api/v2/search"
+
+    responses.add(responses.GET, url, json={"data": []}, status=200)
+
+    engine.analyze(ipv4_observable)
+
+    request = responses.calls[0].request
+    assert request.params["value"] == ipv4_observable.value
+    assert request.params["types"] == "ioc"
+
+
+@responses.activate
+def test_analyze_v3_search_notes_enabled_requests_both_types(secrets_v3, ipv4_observable):
+    """Test that enabling notes search includes notes in the v3 types parameter."""
+    secrets_v3.dfir_iris_search_notes = True
+    engine = DFIRIrisEngine(secrets_v3, proxies={}, ssl_verify=True)
+    url = f"{secrets_v3.dfir_iris_url}/api/v2/search"
+
+    mock_resp = {
+        "data": [
+            {"case_id": 5, "type": "ioc"},
+            {"case_id": 3, "type": "notes"},
+        ]
+    }
+    responses.add(responses.GET, url, json=mock_resp, status=200)
+
+    result = engine.analyze(ipv4_observable)
+
+    request = responses.calls[0].request
+    assert request.params["types"] == "ioc,notes"
+    assert result is not None
+    assert any("case/ioc?cid=5" in link for link in result["links"])
+    assert any("case/notes?cid=3" in link for link in result["links"])
+
+
+@responses.activate
+def test_analyze_v3_no_hits_returns_none(secrets_v3, ipv4_observable):
+    """Test that an empty v3 response returns None."""
+    engine = DFIRIrisEngine(secrets_v3, proxies={}, ssl_verify=True)
+    url = f"{secrets_v3.dfir_iris_url}/api/v2/search"
+
+    responses.add(responses.GET, url, json={"data": []}, status=200)
+
+    result = engine.analyze(ipv4_observable)
+
+    assert result is None
+
+
+@responses.activate
+def test_analyze_v3_http_error_returns_none(secrets_v3, ipv4_observable, caplog):
+    """Test that an HTTP error on the v3 endpoint is handled gracefully."""
+    engine = DFIRIrisEngine(secrets_v3, proxies={}, ssl_verify=True)
+    url = f"{secrets_v3.dfir_iris_url}/api/v2/search"
+
+    responses.add(responses.GET, url, json={"error": "server error"}, status=500)
+
+    caplog.set_level(logging.ERROR)
+    result = engine.analyze(ipv4_observable)
+
+    assert result is None
+    assert "Error querying DFIR-IRIS" in caplog.text
