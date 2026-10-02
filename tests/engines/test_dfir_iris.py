@@ -785,8 +785,8 @@ def test_analyze_v3_success_uses_get_and_api_v2_search(secrets_v3, ipv4_observab
     assert len(responses.calls) == 1
     assert responses.calls[0].request.method == "GET"
     assert result["reports"] == 2
-    for cid in [5, 3]:
-        assert any(f"cid={cid}" in link for link in result["links"])
+    assert any("case/5/iocs/21" in link for link in result["links"])
+    assert any("case/3/iocs/15" in link for link in result["links"])
 
 
 @responses.activate
@@ -813,8 +813,8 @@ def test_analyze_v3_search_notes_enabled_requests_both_types(secrets_v3, ipv4_ob
 
     mock_resp = {
         "data": [
-            {"case_id": 5, "type": "ioc"},
-            {"case_id": 3, "type": "notes"},
+            {"case_id": 5, "ioc_id": 21, "type": "ioc"},
+            {"case_id": 3, "note_id": 1, "type": "notes"},
         ]
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
@@ -824,8 +824,8 @@ def test_analyze_v3_search_notes_enabled_requests_both_types(secrets_v3, ipv4_ob
     request = responses.calls[0].request
     assert request.params["types"] == "ioc,notes"
     assert result is not None
-    assert any("case/ioc?cid=5" in link for link in result["links"])
-    assert any("case/notes?cid=3" in link for link in result["links"])
+    assert any("case/5/iocs/21" in link for link in result["links"])
+    assert any("case/3/notes/1" in link for link in result["links"])
 
 
 @responses.activate

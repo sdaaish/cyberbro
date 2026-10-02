@@ -143,12 +143,12 @@ class DFIRIrisEngine(BaseEngine):
         return response.json()
 
     @staticmethod
-    def _extract_case_ids_by_type(data: Any, result_type: str) -> list[int]:
-        """Extract the case_ids for a given result type (ioc, notes) from a
+    def _extract_results_by_type(data: Any, result_type: str) -> list[dict[str, Any]]:
+        """Extract the result entries for a given result type (ioc, notes) from a
         DFIR-IRIS v3.0.0 search response, if any."""
         if not data or "data" not in data or not data["data"]:
             return []
-        return [i["case_id"] for i in data["data"] if i.get("type") == result_type]
+        return [i for i in data["data"] if i.get("type") == result_type]
 
     def _analyze_v3(self, observable: Observable, dfir_iris_url: str) -> dict[str, Any] | None:
         """Query the new DFIR-IRIS v3.0.0 API, which exposes a single GET
@@ -163,12 +163,12 @@ class DFIRIrisEngine(BaseEngine):
             return None
 
         ioc_links = [
-            f"{dfir_iris_url}/case/ioc?cid={case_id}"
-            for case_id in self._extract_case_ids_by_type(data, "ioc")
+            f"{dfir_iris_url}/case/{result['case_id']}/iocs/{result['ioc_id']}"
+            for result in self._extract_results_by_type(data, "ioc")
         ]
         notes_links = [
-            f"{dfir_iris_url}/case/notes?cid={case_id}"
-            for case_id in self._extract_case_ids_by_type(data, "notes")
+            f"{dfir_iris_url}/case/{result['case_id']}/notes/{result['note_id']}"
+            for result in self._extract_results_by_type(data, "notes")
         ]
 
         if not ioc_links and not notes_links:
