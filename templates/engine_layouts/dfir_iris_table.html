@@ -3,7 +3,7 @@
     <strong>Total count:</strong> {{ result.dfir_iris.reports }}<br/>
     <ul>
         {% for link in result.dfir_iris.links %}
-        <li><a href="{{ link }}">{{ link }}</a></li>
+        <li><a href="{{ link.url }}">{{ link.label }}</a></li>
         {% endfor %}
     </ul>
     {% else %}

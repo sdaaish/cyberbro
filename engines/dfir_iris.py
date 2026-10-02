@@ -9,6 +9,11 @@ from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
+# Emojis prefixed to each result link label, mirroring the per-engine icon
+# convention used in templates/index.html (engineIcons).
+_IOC_EMOJI = "🧷"
+_NOTE_EMOJI = "📝"
+
 
 class DFIRIrisEngine(BaseEngine):
     @property
@@ -34,6 +39,17 @@ class DFIRIrisEngine(BaseEngine):
             "Authorization": "Bearer " + self.secrets.dfir_iris_api_key,
             "Content-Type": "application/json",
         }
+
+    @staticmethod
+    def _make_link(url: str, case_id: int, emoji: str) -> dict[str, str]:
+        """Build a link entry with a bling label (emoji + CaseID) alongside its URL."""
+        return {"url": url, "label": f"{emoji} CaseID: {case_id}"}
+
+    @staticmethod
+    def _dedupe_links(links: list[dict[str, str]]) -> list[dict[str, str]]:
+        """Deduplicate link entries by URL, keeping a stable URL-sorted order."""
+        unique_by_url = {link["url"]: link for link in links}
+        return [unique_by_url[url] for url in sorted(unique_by_url)]
 
     # ------------------------------------------------------------------
     # Legacy API support (DFIR-IRIS v2.0.5 up to v2.4.29)
@@ -95,17 +111,19 @@ class DFIRIrisEngine(BaseEngine):
             return None
 
         ioc_links = [
-            f"{dfir_iris_url}/case/ioc?cid={case_id}"
+            self._make_link(f"{dfir_iris_url}/case/ioc?cid={case_id}", case_id, _IOC_EMOJI)
             for case_id in self._extract_case_ids(ioc_data)
         ]
 
-        notes_links: list[str] = []
+        notes_links: list[dict[str, str]] = []
         if self.secrets.dfir_iris_search_notes:
             try:
                 notes_body = self._build_search_body(observable, "notes")
                 notes_data = self._query_legacy(dfir_iris_url, notes_body)
                 notes_links = [
-                    f"{dfir_iris_url}/case/notes?cid={case_id}"
+                    self._make_link(
+                        f"{dfir_iris_url}/case/notes?cid={case_id}", case_id, _NOTE_EMOJI
+                    )
                     for case_id in self._extract_case_ids(notes_data)
                 ]
             except Exception as e:
@@ -119,7 +137,7 @@ class DFIRIrisEngine(BaseEngine):
         if not ioc_links and not notes_links:
             return None
 
-        unique_links = sorted(set(ioc_links) | set(notes_links))
+        unique_links = self._dedupe_links(ioc_links + notes_links)
         return {"reports": len(unique_links), "links": unique_links}
 
     # ------------------------------------------------------------------
@@ -163,18 +181,26 @@ class DFIRIrisEngine(BaseEngine):
             return None
 
         ioc_links = [
-            f"{dfir_iris_url}/case/{result['case_id']}/iocs/{result['ioc_id']}"
+            self._make_link(
+                f"{dfir_iris_url}/case/{result['case_id']}/iocs/{result['ioc_id']}",
+                result["case_id"],
+                _IOC_EMOJI,
+            )
             for result in self._extract_results_by_type(data, "ioc")
         ]
         notes_links = [
-            f"{dfir_iris_url}/case/{result['case_id']}/notes/{result['note_id']}"
+            self._make_link(
+                f"{dfir_iris_url}/case/{result['case_id']}/notes/{result['note_id']}",
+                result["case_id"],
+                _NOTE_EMOJI,
+            )
             for result in self._extract_results_by_type(data, "notes")
         ]
 
         if not ioc_links and not notes_links:
             return None
 
-        unique_links = sorted(set(ioc_links) | set(notes_links))
+        unique_links = self._dedupe_links(ioc_links + notes_links)
         return {"reports": len(unique_links), "links": unique_links}
 
     # ------------------------------------------------------------------
@@ -190,7 +216,7 @@ class DFIRIrisEngine(BaseEngine):
         if not analysis_result:
             return {"dfir_iris_total_count": None, "dfir_iris_link": None}
 
-        links_str = ", ".join(analysis_result.get("links", []))
+        links_str = ", ".join(link["url"] for link in analysis_result.get("links", []))
         return {
             "dfir_iris_total_count": analysis_result.get("reports"),
             "dfir_iris_link": links_str if links_str else None,

@@ -112,7 +112,10 @@ def test_analyze_success_ipv4_with_credentials(secrets_with_both_keys, ipv4_obse
     assert len(result["links"]) == 2
     # Verify both case IDs appear in the links
     for cid in [1, 2]:
-        assert any(f"cid={cid}" in link for link in result["links"])
+        assert any(f"cid={cid}" in link["url"] for link in result["links"])
+    # Verify labels carry the IOC emoji bling with the CaseID
+    for link in result["links"]:
+        assert link["label"].startswith("🧷 CaseID: ")
 
 
 @responses.activate
@@ -437,9 +440,9 @@ def test_analyze_multiple_cases_sorted(secrets_with_both_keys, ipv4_observable):
 
     assert result is not None
     assert result["reports"] == 4
-    # Links should be sorted alphabetically
-    links = result["links"]
-    assert links == sorted(links)
+    # Links should be sorted alphabetically by URL
+    urls = [link["url"] for link in result["links"]]
+    assert urls == sorted(urls)
 
 
 @responses.activate
@@ -471,9 +474,9 @@ def test_create_export_row_with_data(secrets_with_both_keys):
     analysis_result = {
         "reports": 3,
         "links": [
-            "https://dfir-iris.example.com/case/ioc?cid=1",
-            "https://dfir-iris.example.com/case/ioc?cid=2",
-            "https://dfir-iris.example.com/case/ioc?cid=3",
+            {"url": "https://dfir-iris.example.com/case/ioc?cid=1", "label": "🧷 CaseID: 1"},
+            {"url": "https://dfir-iris.example.com/case/ioc?cid=2", "label": "🧷 CaseID: 2"},
+            {"url": "https://dfir-iris.example.com/case/ioc?cid=3", "label": "🧷 CaseID: 3"},
         ],
     }
 
@@ -656,8 +659,9 @@ def test_analyze_notes_enabled_merges_ioc_and_notes_links(
     assert result["reports"] == 2
     ioc_link = f"{secrets_with_notes_enabled.dfir_iris_url}/case/ioc?cid=1"
     notes_link = f"{secrets_with_notes_enabled.dfir_iris_url}/case/notes?cid=2"
-    assert ioc_link in result["links"]
-    assert notes_link in result["links"]
+    links = [link["url"] for link in result["links"]]
+    assert ioc_link in links
+    assert notes_link in links
 
 
 @responses.activate
@@ -674,7 +678,7 @@ def test_analyze_notes_only_hit_returns_notes_link(secrets_with_notes_enabled, i
     assert result is not None
     assert result["reports"] == 1
     notes_link = f"{secrets_with_notes_enabled.dfir_iris_url}/case/notes?cid=3"
-    assert result["links"] == [notes_link]
+    assert [link["url"] for link in result["links"]] == [notes_link]
 
 
 @responses.activate
@@ -691,7 +695,7 @@ def test_analyze_ioc_only_hit_with_notes_enabled(secrets_with_notes_enabled, ipv
     assert result is not None
     assert result["reports"] == 1
     ioc_link = f"{secrets_with_notes_enabled.dfir_iris_url}/case/ioc?cid=1"
-    assert result["links"] == [ioc_link]
+    assert [link["url"] for link in result["links"]] == [ioc_link]
 
 
 @responses.activate
@@ -711,7 +715,7 @@ def test_analyze_notes_search_failure_is_non_fatal(
     assert result is not None
     assert result["reports"] == 1
     ioc_link = f"{secrets_with_notes_enabled.dfir_iris_url}/case/ioc?cid=1"
-    assert result["links"] == [ioc_link]
+    assert [link["url"] for link in result["links"]] == [ioc_link]
     assert "Error querying DFIR-IRIS notes" in caplog.text
 
 
@@ -785,8 +789,9 @@ def test_analyze_v3_success_uses_get_and_api_v2_search(secrets_v3, ipv4_observab
     assert len(responses.calls) == 1
     assert responses.calls[0].request.method == "GET"
     assert result["reports"] == 2
-    assert any("case/5/iocs/21" in link for link in result["links"])
-    assert any("case/3/iocs/15" in link for link in result["links"])
+    links = [link["url"] for link in result["links"]]
+    assert any("case/5/iocs/21" in link for link in links)
+    assert any("case/3/iocs/15" in link for link in links)
 
 
 @responses.activate
@@ -824,8 +829,13 @@ def test_analyze_v3_search_notes_enabled_requests_both_types(secrets_v3, ipv4_ob
     request = responses.calls[0].request
     assert request.params["types"] == "ioc,notes"
     assert result is not None
-    assert any("case/5/iocs/21" in link for link in result["links"])
-    assert any("case/3/notes/1" in link for link in result["links"])
+    links = [link["url"] for link in result["links"]]
+    assert any("case/5/iocs/21" in link for link in links)
+    assert any("case/3/notes/1" in link for link in links)
+    # Verify labels carry the type-specific emoji bling with the CaseID
+    labels_by_url = {link["url"]: link["label"] for link in result["links"]}
+    assert labels_by_url[f"{secrets_v3.dfir_iris_url}/case/5/iocs/21"] == "🧷 CaseID: 5"
+    assert labels_by_url[f"{secrets_v3.dfir_iris_url}/case/3/notes/1"] == "📝 CaseID: 3"
 
 
 @responses.activate
